@@ -4,16 +4,19 @@ import pandas as pd
 def readEdgelist(path):
     # graph will be an adjacency list, {int -> int[]}, where int is a vertex
     graph = {}
+    nodes = set()
 
     with open(path) as file:
         for edgeText in file:
-            start, end = edgeText.split()
+            start, end, weight = edgeText.split()
             graph.setdefault(int(start), []).append(int(end))
+            nodes.add(int(start))
+            nodes.add(int(end))
     
-    return graph
+    return graph, nodes
 
 def makeGraphFrame(path, roots=[]):
-    g = readEdgelist(path)      # get basic adj list
+    g, n = readEdgelist(path)      # get basic adj list
     
     # make hatchet graph
     nodes = {}
@@ -39,10 +42,12 @@ def makeGraphFrame(path, roots=[]):
 # ============ MISC CLEANING ===================================================
 
 def shorten():
-    g = readEdgelist("./data/higgs-social_network.edgelist")
+    g, n = readEdgelist("./data/higgs-retweet_network.edgelist")
+
+    new = set(list(n)[:128])
 
     with open("./data/higgs-social_network-short.edgelist", 'w') as out:
-        for node in range(1, 129):
+        for node in new:
             for neigh in g[node]:
-                if neigh <= 128:
+                if neigh in new:
                     out.write(str(node) + " " + str(neigh) + "\n")
